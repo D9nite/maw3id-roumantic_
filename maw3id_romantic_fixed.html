@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>موعد مميز معك ❤️</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*{font-family:'Cairo',sans-serif;-webkit-tap-highlight-color:transparent;box-sizing:border-box}
+body{min-height:100vh}
+@keyframes pulseGlow{0%,100%{opacity:.4;transform:scale(1)}50%{opacity:.8;transform:scale(1.08)}}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-9px)}}
+.ambient-glow{animation:pulseGlow 6s infinite ease-in-out}
+.floating-card{animation:float 4s infinite ease-in-out}
+.glass-card{background:rgba(255,255,255,.78);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,.7);box-shadow:0 20px 50px rgba(225,29,72,.15)}
+#bgCanvas{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:0}
+.step-container{transition:opacity .35s ease,transform .35s ease}
+.food-card{transition:all .25s cubic-bezier(.34,1.56,.64,1)}
+.food-card.selected{border:2px solid #e11d48;background:rgba(254,242,242,.95);transform:translateY(-3px) scale(1.02);box-shadow:0 10px 25px -5px rgba(225,29,72,.25)}
+.day-btn{min-height:40px;border-radius:12px;font-weight:700;transition:.15s}
+.day-btn:disabled{opacity:.25;cursor:not-allowed}
+.day-btn.available:hover{background:#ffe4e6;color:#be123c}
+.day-btn.chosen{background:#e11d48!important;color:white!important;box-shadow:0 4px 12px #e11d4855}
+button:disabled{opacity:.6}
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-thumb{background:#fda4af;border-radius:99px}
+@media(max-width:380px){.day-btn{min-height:35px;font-size:12px}}
+</style>
+</head>
+<body class="bg-gradient-to-br from-rose-100 via-pink-50 to-red-100 text-slate-800 flex items-center justify-center p-4 relative overflow-x-hidden">
+<canvas id="bgCanvas"></canvas>
+<div class="fixed top-10 right-10 w-72 h-72 bg-pink-300 rounded-full blur-3xl opacity-40 ambient-glow pointer-events-none"></div>
+<div class="fixed bottom-10 left-10 w-96 h-96 bg-rose-300 rounded-full blur-3xl opacity-30 ambient-glow pointer-events-none" style="animation-delay:3s"></div>
+
+<main class="relative z-10 w-full max-w-xl mx-auto">
+<div id="cardInner" class="glass-card rounded-3xl p-5 sm:p-9 transition-all duration-500">
+<header class="text-center mb-6">
+<div class="inline-flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 bg-rose-500/10 rounded-full text-rose-600 mb-2 shadow-inner"><span class="text-4xl">🌹</span></div>
+<h1 class="text-xl sm:text-2xl font-black text-rose-700">موعد مميز معك ❤️</h1>
+</header>
+
+<section id="step1" class="step-container text-center space-y-7">
+<div class="space-y-3">
+<p class="text-2xl sm:text-3xl font-extrabold text-slate-800 leading-snug">هل تقبلين الخروج معي في موعد مميز؟ 🥹❤️</p>
+<p class="text-sm sm:text-base text-rose-600/80 font-medium">أتمنى نصنعو نهار يبقى من أجمل ذكرياتنا...</p>
+</div>
+<div id="buttonsWrapper" class="relative min-h-[150px] flex flex-col sm:flex-row items-center justify-center gap-5 py-4">
+<button id="yesBtn" onclick="goToStep(2)" class="z-20 bg-gradient-to-r from-rose-500 to-pink-600 text-white font-extrabold text-lg sm:text-xl py-4 px-8 rounded-full shadow-lg shadow-rose-500/30 transition-all duration-300">بكل تأكيد ❤️</button>
+<button id="noBtn" class="z-10 bg-slate-200 text-slate-700 font-bold text-base sm:text-lg py-3 px-6 rounded-full shadow-md">لا 🙈</button>
+</div>
+</section>
+
+<section id="step2" class="step-container hidden space-y-6 text-center">
+<div class="space-y-2">
+<h2 class="text-xl sm:text-2xl font-extrabold text-rose-700">إذن، اختاري لنا اليوم الذي سنقضي فيه أجمل الأوقات معاً ❤️</h2>
+<p class="text-xs sm:text-sm text-slate-500">اختاري التاريخ اللي يناسبك من التقويم</p>
+</div>
+<div class="bg-white/80 border border-rose-100 rounded-2xl p-4 sm:p-6 shadow-inner space-y-4">
+<div class="flex items-center justify-between border-b border-rose-100 pb-3">
+<button onclick="changeMonth(-1)" aria-label="الشهر السابق" class="p-2 hover:bg-rose-50 rounded-full text-rose-600 font-bold text-xl">›</button>
+<span id="calendarMonthYear" class="font-bold text-rose-800 text-lg"></span>
+<button onclick="changeMonth(1)" aria-label="الشهر التالي" class="p-2 hover:bg-rose-50 rounded-full text-rose-600 font-bold text-xl">‹</button>
+</div>
+<div class="grid grid-cols-7 gap-1 text-xs font-bold text-slate-400">
+<div>أحد</div><div>إثنين</div><div>ثلاثاء</div><div>أربعاء</div><div>خميس</div><div>جمعة</div><div>سبت</div>
+</div>
+<div id="calendarDays" class="grid grid-cols-7 gap-1 sm:gap-2"></div>
+</div>
+<div id="selectedDateBanner" class="hidden text-rose-700 bg-rose-50 border border-rose-200 rounded-xl p-3 text-sm font-bold items-center justify-center gap-2">
+<span>التاريخ المختار:</span><span id="displaySelectedDate" class="underline"></span>
+</div>
+<button id="step2NextBtn" onclick="validateStep2()" disabled class="w-full bg-slate-300 text-slate-500 cursor-not-allowed font-extrabold text-lg py-3.5 px-6 rounded-2xl shadow">التالي ❤️</button>
+</section>
+
+<section id="step3" class="step-container hidden space-y-6 text-center">
+<div class="space-y-2">
+<h2 class="text-xl sm:text-2xl font-extrabold text-rose-700">شنو كيعجبك ناكلو فموعدنا؟ 😍</h2>
+<p class="text-xs sm:text-sm text-slate-500">اختاري طبق واحد أو أكثر، المهم تكوني مبسوطة ❤️</p>
+</div>
+<div class="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4 max-h-[380px] overflow-y-auto p-1">
+<div onclick="toggleFood(this,'البيتزا 🍕')" class="food-card cursor-pointer bg-white/80 border border-slate-200 rounded-2xl p-3 flex flex-col items-center gap-2"><img src="https://images.unsplash.com/photo-1513104890138-7c749659a591?auto=format&fit=crop&w=300&q=80" alt="بيتزا" class="w-full h-24 sm:h-28 object-cover rounded-xl" loading="lazy"><span class="font-bold text-sm sm:text-base">البيتزا 🍕</span></div>
+<div onclick="toggleFood(this,'السوشي 🍣')" class="food-card cursor-pointer bg-white/80 border border-slate-200 rounded-2xl p-3 flex flex-col items-center gap-2"><img src="https://images.unsplash.com/photo-1579871494447-9811cf80d66c?auto=format&fit=crop&w=300&q=80" alt="سوشي" class="w-full h-24 sm:h-28 object-cover rounded-xl" loading="lazy"><span class="font-bold text-sm sm:text-base">السوشي 🍣</span></div>
+<div onclick="toggleFood(this,'الطاكوس 🌮')" class="food-card cursor-pointer bg-white/80 border border-slate-200 rounded-2xl p-3 flex flex-col items-center gap-2"><img src="https://images.unsplash.com/photo-1565299585323-38d6b0865b47?auto=format&fit=crop&w=300&q=80" alt="طاكوس" class="w-full h-24 sm:h-28 object-cover rounded-xl" loading="lazy"><span class="font-bold text-sm sm:text-base">الطاكوس 🌮</span></div>
+<div onclick="toggleFood(this,'البرغر 🍔')" class="food-card cursor-pointer bg-white/80 border border-slate-200 rounded-2xl p-3 flex flex-col items-center gap-2"><img src="https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=300&q=80" alt="برغر" class="w-full h-24 sm:h-28 object-cover rounded-xl" loading="lazy"><span class="font-bold text-sm sm:text-base">البرغر 🍔</span></div>
+<div onclick="toggleFood(this,'المثلجات 🍦')" class="food-card cursor-pointer bg-white/80 border border-slate-200 rounded-2xl p-3 flex flex-col items-center gap-2"><img src="https://images.unsplash.com/photo-1560008581-09826d1de69e?auto=format&fit=crop&w=300&q=80" alt="مثلجات" class="w-full h-24 sm:h-28 object-cover rounded-xl"><span class="font-bold text-sm sm:text-base">المثلجات 🍦</span></div>
+<div onclick="toggleFood(this,'عشاء رومانسي 🍽️')" class="food-card cursor-pointer bg-white/80 border border-slate-200 rounded-2xl p-3 flex flex-col items-center gap-2"><img src="https://images.unsplash.com/photo-1559339352-11d035aa65de?auto=format&fit=crop&w=300&q=80" alt="عشاء رومانسي" class="w-full h-24 sm:h-28 object-cover rounded-xl" loading="lazy"><span class="font-bold text-sm sm:text-base">عشاء رومانسي 🍽️</span></div>
+</div>
+<button id="step3NextBtn" onclick="validateStep3()" disabled class="w-full bg-slate-300 text-slate-500 cursor-not-allowed font-extrabold text-lg py-3.5 px-6 rounded-2xl shadow">التالي ❤️</button>
+</section>
+
+<section id="step4" class="step-container hidden space-y-6 text-center">
+<div class="bg-gradient-to-b from-rose-50 to-pink-50 border border-rose-200 rounded-2xl p-6 sm:p-8 space-y-4 shadow-sm">
+<div class="text-rose-400 text-4xl">💌</div>
+<h2 class="text-xl sm:text-2xl font-black text-rose-700">إلى اللي بغيت يكون نهاري زوين بحضورها ❤️</h2>
+<div class="text-base sm:text-lg leading-loose text-slate-700 font-semibold space-y-4">
+<p>«عارفة شنو أجمل حاجة كنتمناها فهاد الموعد؟ ماشي المطعم، وماشي الماكلة، وماشي حتى المكان اللي غادي نمشيو ليه... أجمل حاجة هي نكون معاك، ونشوف الفرحة فعينيك والضحكة فوجهك. ❤️</p>
+<p>بغيت نهارنا يكون بسيط ولكن مختلف؛ نهضرو ونضحكو، نكتاشفو لحظات زوينة، ونخليو الوقت يدوز بلا ما نحسو بيه. بغيت كل تفصيلة صغيرة فيه تولّي ذكرى كنبتاسمو ملي نتفكروها. 🌹</p>
+<p>وإلى سولتيني شنو بغيت من هاد الموعد، غنقول ليك: بغيت غير فرصة نعيش معاك لحظة حقيقية، بلا تصنّع وبلا تكليف... حيث وجودك بوحدو يقدر يخلي أبسط نهار مميز.</p>
+<p class="text-rose-700 font-extrabold">المهم عندي ماشي فين غادي نمشيو، المهم مع من غادي نكون... واختياري هو نتي. ❤️»</p>
+</div>
+</div>
+<div class="bg-gradient-to-r from-amber-500/10 via-rose-500/10 to-amber-500/10 border border-amber-300/50 rounded-2xl p-5 text-right space-y-3">
+<div class="flex items-center justify-between border-b border-rose-200/60 pb-2"><span class="text-xs font-black text-rose-800">🎟️ بطاقة موعدنا المميز</span><span class="text-xs font-bold text-rose-600">محفوظة للقلب ✨</span></div>
+<div class="space-y-2 text-sm">
+<div class="flex items-center justify-between gap-2"><span class="text-slate-500">📅 التاريخ:</span><span id="ticketDate" class="font-bold text-rose-700"></span></div>
+<div class="flex items-start justify-between gap-2"><span class="text-slate-500 shrink-0">🍴 اختيارك:</span><span id="ticketFoods" class="font-bold text-rose-700 text-left max-w-[65%]"></span></div>
+</div>
+</div>
+<button onclick="resetAll()" class="w-full bg-gradient-to-r from-rose-500 to-pink-600 text-white font-extrabold text-base sm:text-lg py-3.5 px-6 rounded-2xl shadow-lg">نرجعو نعيشو هاد اللحظة من جديد؟ ❤️</button>
+</section>
+</div>
+</main>
+
+<script>
+let currentStep=1, selectedDate=null, selectedFoods=[], yesButtonScale=1;
+let shownMonth=new Date(); shownMonth.setDate(1);
+const monthNames=['يناير','فبراير','مارس','أبريل','ماي','يونيو','يوليوز','غشت','شتنبر','أكتوبر','نونبر','دجنبر'];
+const dayNames=['الأحد','الإثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'];
+
+function goToStep(step){
+ const current=document.getElementById('step'+currentStep);
+ const next=document.getElementById('step'+step);
+ if(!next)return;
+ current.classList.add('opacity-0','-translate-y-3');
+ setTimeout(()=>{
+  current.classList.add('hidden');
+  current.classList.remove('opacity-0','-translate-y-3');
+  next.classList.remove('hidden');
+  next.classList.add('opacity-0','translate-y-3');
+  requestAnimationFrame(()=>next.classList.remove('opacity-0','translate-y-3'));
+  currentStep=step;
+  window.scrollTo({top:0,behavior:'smooth'});
+  if(step===4)fillTicket();
+ },350);
+}
+function setupNoButton(){
+ const no=document.getElementById('noBtn'), yes=document.getElementById('yesBtn'), wrap=document.getElementById('buttonsWrapper');
+ function run(e){
+  if(e)e.preventDefault();
+  const r=wrap.getBoundingClientRect(), b=no.getBoundingClientRect();
+  const maxX=Math.max(0,(r.width-b.width)/2-8), maxY=Math.max(0,(r.height-b.height)/2-8);
+  no.style.position='absolute'; no.style.left='50%'; no.style.top='50%';
+  no.style.transform=`translate(calc(-50% + ${(Math.random()*2-1)*maxX}px),calc(-50% + ${(Math.random()*2-1)*maxY}px))`;
+  yesButtonScale=Math.min(1.65,yesButtonScale+.08); yes.style.transform=`scale(${yesButtonScale})`;
+ }
+ no.addEventListener('mouseenter',run);
+ no.addEventListener('touchstart',run,{passive:false});
+ no.addEventListener('click',run);
+}
+function changeMonth(delta){
+ const candidate=new Date(shownMonth.getFullYear(),shownMonth.getMonth()+delta,1);
+ const now=new Date(); now.setHours(0,0,0,0);
+ const firstThisMonth=new Date(now.getFullYear(),now.getMonth(),1);
+ if(candidate<firstThisMonth)return;
+ shownMonth=candidate; renderCalendar();
+}
+function renderCalendar(){
+ const year=shownMonth.getFullYear(), month=shownMonth.getMonth();
+ document.getElementById('calendarMonthYear').textContent=monthNames[month]+' '+year;
+ const grid=document.getElementById('calendarDays'); grid.innerHTML='';
+ const firstDay=new Date(year,month,1).getDay();
+ const total=new Date(year,month+1,0).getDate();
+ const today=new Date(); today.setHours(0,0,0,0);
+ for(let i=0;i<firstDay;i++){const blank=document.createElement('div');grid.appendChild(blank);}
+ for(let day=1;day<=total;day++){
+  const date=new Date(year,month,day); date.setHours(0,0,0,0);
+  const btn=document.createElement('button'); btn.type='button'; btn.textContent=day;
+  btn.className='day-btn';
+  const key=dateKey(date);
+  const chosen=selectedDate===key;
+  if(date<today){btn.disabled=true;btn.classList.add('text-slate-300');}
+  else{
+   btn.classList.add('available','text-slate-700');
+   btn.addEventListener('click',()=>selectDate(key));
+  }
+  if(chosen)btn.classList.add('chosen');
+  grid.appendChild(btn);
+ }
+}
+function dateKey(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+function selectDate(key){
+ selectedDate=key;
+ const [y,m,d]=key.split('-').map(Number);
+ const date=new Date(y,m-1,d);
+ document.getElementById('displaySelectedDate').textContent=date.toLocaleDateString('ar-MA',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+ const banner=document.getElementById('selectedDateBanner');
+ banner.classList.remove('hidden');banner.classList.add('flex');
+ const next=document.getElementById('step2NextBtn');
+ next.disabled=false;next.className='w-full bg-gradient-to-r from-rose-500 to-pink-600 text-white font-extrabold text-lg py-3.5 px-6 rounded-2xl shadow transition-all';
+ renderCalendar();
+}
+function validateStep2(){if(!selectedDate)return;goToStep(3);}
+function toggleFood(card,name){
+ const index=selectedFoods.indexOf(name);
+ if(index>-1){selectedFoods.splice(index,1);card.classList.remove('selected');}
+ else{selectedFoods.push(name);card.classList.add('selected');}
+ const next=document.getElementById('step3NextBtn');
+ next.disabled=selectedFoods.length===0;
+ next.className=selectedFoods.length?'w-full bg-gradient-to-r from-rose-500 to-pink-600 text-white font-extrabold text-lg py-3.5 px-6 rounded-2xl shadow transition-all':'w-full bg-slate-300 text-slate-500 cursor-not-allowed font-extrabold text-lg py-3.5 px-6 rounded-2xl shadow';
+}
+function validateStep3(){if(selectedFoods.length===0)return;goToStep(4);celebrate();}
+function fillTicket(){
+ const [y,m,d]=selectedDate.split('-').map(Number);
+ document.getElementById('ticketDate').textContent=new Date(y,m-1,d).toLocaleDateString('ar-MA',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+ document.getElementById('ticketFoods').textContent=selectedFoods.join('، ');
+}
+function celebrate(){
+ if(typeof confetti==='function'){
+  confetti({particleCount:100,spread:75,origin:{y:.65},colors:['#e11d48','#fb7185','#fbbf24','#ffffff']});
+  setTimeout(()=>confetti({particleCount:55,spread:100,origin:{y:.6},colors:['#e11d48','#fda4af','#fbbf24']}),450);
+ }
+}
+function resetAll(){
+ selectedDate=null;selectedFoods=[];yesButtonScale=1;
+ const yes=document.getElementById('yesBtn'),no=document.getElementById('noBtn');
+ yes.style.transform='';no.style.position='';no.style.left='';no.style.top='';no.style.transform='';
+ document.querySelectorAll('.food-card').forEach(c=>c.classList.remove('selected'));
+ const banner=document.getElementById('selectedDateBanner');banner.classList.add('hidden');banner.classList.remove('flex');
+ const dateNext=document.getElementById('step2NextBtn');dateNext.disabled=true;dateNext.className='w-full bg-slate-300 text-slate-500 cursor-not-allowed font-extrabold text-lg py-3.5 px-6 rounded-2xl shadow';
+ const foodNext=document.getElementById('step3NextBtn');foodNext.disabled=true;foodNext.className='w-full bg-slate-300 text-slate-500 cursor-not-allowed font-extrabold text-lg py-3.5 px-6 rounded-2xl shadow';
+ document.querySelectorAll('.step-container').forEach(s=>s.classList.add('hidden'));
+ document.getElementById('step1').classList.remove('hidden');
+ currentStep=1;shownMonth=new Date();shownMonth.setDate(1);renderCalendar();
+ window.scrollTo({top:0,behavior:'smooth'});
+}
+const canvas=document.getElementById('bgCanvas'),ctx=canvas.getContext('2d');let particles=[];
+function resizeCanvas(){const dpr=Math.min(window.devicePixelRatio||1,2);canvas.width=innerWidth*dpr;canvas.height=innerHeight*dpr;canvas.style.width=innerWidth+'px';canvas.style.height=innerHeight+'px';ctx.setTransform(dpr,0,0,dpr,0,0);}
+class Particle{
+ constructor(){this.reset(true)}
+ reset(initial=false){this.x=Math.random()*innerWidth;this.y=initial?Math.random()*innerHeight:innerHeight+25;this.size=Math.random()*13+10;this.speed=Math.random()*.8+.35;this.drift=(Math.random()-.5)*.5;this.opacity=Math.random()*.45+.15;this.symbol=Math.random()>.4?'❤️':'🌹';this.angle=Math.random()*6.28}
+ update(){this.y-=this.speed;this.x+=this.drift;this.angle+=.008;if(this.y<-30)this.reset()}
+ draw(){ctx.save();ctx.translate(this.x,this.y);ctx.rotate(this.angle);ctx.globalAlpha=this.opacity;ctx.font=this.size+'px sans-serif';ctx.fillText(this.symbol,0,0);ctx.restore()}
+}
+function animateCanvas(){ctx.clearRect(0,0,innerWidth,innerHeight);particles.forEach(p=>{p.update();p.draw()});requestAnimationFrame(animateCanvas)}
+window.addEventListener('resize',resizeCanvas);
+resizeCanvas();for(let i=0;i<22;i++)particles.push(new Particle());animateCanvas();
+setupNoButton();renderCalendar();
+</script>
+</body>
+</html>
