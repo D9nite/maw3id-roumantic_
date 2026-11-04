@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>واش كاتبغيني؟ ❤️</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Cairo:wght@400;600;700;800;900&family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+  <style>
+    *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+    body{font-family:'Tajawal','Cairo',sans-serif;background:radial-gradient(circle at center,#2b0814 0%,#12020a 60%,#0d0006 100%);min-height:100vh;margin:0;overflow-x:hidden;color:#fff}
+    #bgCanvas{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:0}
+    .stage{transition:opacity .6s ease,transform .6s ease}
+    @keyframes heartPulse{0%,100%{transform:scale(1);filter:drop-shadow(0 0 15px rgba(255,77,109,.6))}50%{transform:scale(1.18);filter:drop-shadow(0 0 35px rgba(255,77,109,.9))}}
+    .animate-heart-pulse{animation:heartPulse 1.8s infinite ease-in-out}
+    .glass-luxury{background:rgba(43,8,20,.55);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1px solid rgba(212,175,55,.3);box-shadow:0 15px 40px rgba(0,0,0,.7),inset 0 0 20px rgba(212,175,55,.08)}
+    .envelope-wrapper{perspective:1000px}
+    .envelope{width:280px;height:190px;background:#2b0814;border:2px solid #d4af37;border-radius:12px;position:relative;box-shadow:0 15px 35px rgba(0,0,0,.8),0 0 20px rgba(212,175,55,.2);transition:transform .8s cubic-bezier(.4,0,.2,1);transform-style:preserve-3d}
+    .envelope-flap{position:absolute;top:0;left:0;right:0;height:0;border-left:140px solid transparent;border-right:140px solid transparent;border-top:105px solid #3d0c1e;transform-origin:top;transition:transform .7s ease-in-out;z-index:3;filter:drop-shadow(0 2px 4px rgba(0,0,0,.5))}
+    .envelope-open .envelope-flap{transform:rotateX(180deg);z-index:1}
+    .letter-paper-preview{position:absolute;bottom:10px;left:15px;right:15px;height:160px;background:#fffdf9;border-radius:6px;transition:transform .8s ease-in-out;z-index:2;box-shadow:0 2px 10px rgba(0,0,0,.2)}
+    .envelope-open .letter-paper-preview{transform:translateY(-80px) scale(1.05);z-index:4}
+    .poem-card{background:linear-gradient(135deg,#fffdfa 0%,#f7f0e3 100%);color:#2b0814;border:2px solid #d4af37;box-shadow:0 20px 50px rgba(0,0,0,.9),0 0 30px rgba(212,175,55,.25);border-radius:20px}
+    .poem-strophe{opacity:0;transform:translateY(20px);transition:all .8s cubic-bezier(.22,1,.36,1)}
+    .poem-strophe.visible{opacity:1;transform:translateY(0)}
+    ::-webkit-scrollbar{width:8px}::-webkit-scrollbar-track{background:rgba(13,0,6,.8)}::-webkit-scrollbar-thumb{background:#d4af37;border-radius:10px}
+    button{touch-action:manipulation}
+    @media(max-width:420px){.envelope{transform:scale(.9)}}
+  </style>
+</head>
+<body class="flex items-center justify-center min-h-screen p-4 md:p-6 relative">
+  <canvas id="bgCanvas"></canvas>
+  <main class="relative z-10 w-full max-w-2xl my-auto">
+    <section id="stage1" class="stage glass-luxury rounded-3xl p-6 md:p-10 text-center flex flex-col items-center justify-center min-h-[480px]">
+      <div class="text-7xl md:text-8xl mb-6 animate-heart-pulse cursor-pointer">💖</div>
+      <p class="text-lg md:text-xl text-pink-200 font-medium mb-3">«عندي ليك سؤال صغير... جاوبيني من قلبك ❤️»</p>
+      <h1 class="text-3xl md:text-5xl font-extrabold text-yellow-400 mb-10 leading-relaxed">«واش كاتبغيني؟ 🥺❤️»</h1>
+      <div id="buttonArea" class="relative w-full min-h-[140px] flex flex-col md:flex-row items-center justify-center gap-6">
+        <button id="yesBtn" onclick="goToStage2()" class="z-20 px-8 py-4 bg-gradient-to-r from-rose-500 to-pink-600 text-white font-bold text-xl rounded-full shadow-lg transition-transform duration-300 border-2 border-yellow-500 flex items-center justify-center gap-2"><span>آه، كنبغيك ❤️</span></button>
+        <button id="noBtn" class="z-20 px-8 py-4 bg-rose-950 text-gray-300 font-bold text-xl rounded-full border-2 border-gray-600 shadow-md transition-all duration-200 flex items-center justify-center gap-2"><span>لا 🙈</span></button>
+      </div>
+    </section>
+
+    <section id="stage2" class="stage glass-luxury rounded-3xl p-6 md:p-10 text-center flex flex-col items-center justify-center min-h-[480px] hidden opacity-0 scale-95">
+      <p class="text-xl md:text-2xl text-pink-200 font-bold mb-8 leading-relaxed">«كنت كنتسنى هاد الجواب منك... ❤️<br><span class="text-yellow-400 text-lg md:text-xl font-normal">ولكن مازال عندي ليك مفاجأة صغيرة، حضرتها ليك من القلب.</span>»</p>
+      <div class="envelope-wrapper my-6">
+        <div id="envelope" class="envelope flex items-center justify-center">
+          <div class="envelope-flap"></div>
+          <div class="letter-paper-preview flex items-center justify-center p-2"><span class="text-rose-950 text-sm italic" style="font-family:Amiri,serif">إليكِ مع كل الحب... 🌹</span></div>
+          <div class="z-10 w-12 h-12 bg-gradient-to-tr from-yellow-500 to-yellow-200 text-rose-950 rounded-full flex items-center justify-center text-xl shadow-lg border border-white/40">❤️</div>
+        </div>
+      </div>
+      <button id="openEnvelopeBtn" onclick="openSurprise()" class="mt-8 px-10 py-4 bg-gradient-to-r from-yellow-500 via-yellow-400 to-amber-600 text-rose-950 font-extrabold text-xl rounded-full shadow-xl transition-all duration-300 border border-yellow-200 flex items-center gap-3"><span>افتحي رسالتي 💌</span></button>
+    </section>
+
+    <section id="stage3" class="stage glass-luxury rounded-3xl p-4 md:p-8 text-center flex flex-col items-center justify-center hidden opacity-0 scale-95 my-4">
+      <h2 class="text-2xl md:text-4xl font-extrabold text-yellow-400 mb-6 border-b border-yellow-500/30 pb-3 w-full">«إليكِ... يا أجمل صدفة في حياتي ❤️»</h2>
+      <div id="poemContainer" class="poem-card w-full max-h-[60vh] overflow-y-auto p-5 md:p-8 rounded-2xl text-right text-lg md:text-2xl leading-loose font-bold space-y-6 border border-yellow-500/40 relative shadow-inner" style="font-family:Amiri,serif">
+        <div class="poem-strophe border-b border-rose-950/10 pb-4"><p>يا من سكنتِ القلب دون استئذانِ ... وصرتِ أجملَ حُلمِهِ وأماني</p><p>ما كنتُ أعرفُ أن في عينيكِ لي ... وطناً يضمُّ الروحَ بعدَ زمانِ</p></div>
+        <div class="poem-strophe border-b border-rose-950/10 pb-4"><p>حتى أتيتِ فأزهرتْ أيامي ... وغدا حضورُكِ بهجةَ الوجدانِ</p><p>أحببتُ فيكِ ضحكةً لو أقبلتْ ... مَحَتِ الأسى من خاطري وأحزاني</p></div>
+        <div class="poem-strophe border-b border-rose-950/10 pb-4"><p>وأحببتُ عينيكِ اللتينِ كأنهما ... نجمانِ يسهرُ ضوؤهما لحناني</p><p>إن غبتِ عن عيني يطولُ تلهفي ... ويظلُّ طيفُكِ حاضراً بكياني</p></div>
+        <div class="poem-strophe border-b border-rose-950/10 pb-4"><p>وأظلُّ أذكرُ كلَّ حرفٍ قلتِهِ ... وكأنّهُ لحنٌ يردّدُهُ لساني</p><p>يا زهرةً في العمرِ فاحَ عبيرُها ... فغدتْ ربيعاً زاهياً لبستاني</p></div>
+        <div class="poem-strophe border-b border-rose-950/10 pb-4"><p>ما الحبُّ أن أهوى الجمالَ فحسبُهُ ... بل أن أصونَ الودَّ بالإحسانِ</p><p>أن أسمعَ الشكوى بقلبٍ صادقٍ ... وأكونَ وقتَ الضيقِ خيرَ أمانِ</p></div>
+        <div class="poem-strophe border-b border-rose-950/10 pb-4"><p>أن لا أكونَ عابراً في دربِكِ ... بل صاحباً للصدقِ والإحسانِ</p><p>أرجو بأن نبني معاً أيامَنا ... بالحبِّ والتقديرِ والاطمئنانِ</p></div>
+        <div class="poem-strophe border-b border-rose-950/10 pb-4"><p>ونخطَّ في دربِ الحياةِ حكايةً ... تبقى جميلةَ ذكرِها في ثاني</p><p>إن ضحكتِ الدنيا تضحكُ حولَنا ... ويصيرُ أبسطُ وقتِنا كالجنانِ</p></div>
+        <div class="poem-strophe border-b border-rose-950/10 pb-4"><p>وإذا تعبتِ وجدتِ قلبيَ موطناً ... فيه الحنانُ يضمُّ كلَّ أماني</p><p>لا أطلبُ الدنيا وما في أرضِها ... يكفينيَ الصدقُ الجميلُ بدنيانا</p></div>
+        <div class="poem-strophe border-b border-rose-950/10 pb-4"><p>فأنتِ لستِ ككلِّ من مرّوا هنا ... أنتِ الحكايةُ والقصيدةُ والأغاني</p><p>وإن سألتِ القلبَ يوماً عن هوىً ... قالَ اختياري أنتِ دونَ ثواني</p></div>
+        <div class="poem-strophe pb-2"><p>فخذي من الكلماتِ أصدقَ نبضةٍ ... فالحبُّ أفعالٌ وليسَ بياني</p><p>وإن كان للحبِّ ألفُ بدايةٍ ... فأنتِ أجملُ ما بدأتُ زماني</p></div>
+        <div id="finalPoemMessage" class="mt-8 p-6 bg-rose-950/10 rounded-xl border border-yellow-500/30 text-center" style="font-family:Cairo,sans-serif">
+          <p class="text-lg md:text-2xl font-bold text-rose-950 mb-3">«وإن كان للحب ألف بداية، فأنا أختار أن تكون كل بداياتي معكِ. ❤️🌹»</p>
+          <p class="text-sm md:text-base text-gray-700 font-bold">«شكراً لأنكِ جعلتِ هذه اللحظة أجمل.»</p>
+        </div>
+      </div>
+      <div class="flex flex-col sm:flex-row items-center justify-center gap-4 w-full mt-6">
+        <button onclick="restartPoemAnimation()" class="w-full sm:w-auto px-6 py-3.5 bg-gradient-to-r from-rose-500 to-pink-600 text-white font-bold text-base md:text-lg rounded-full shadow-lg transition-all duration-300 border border-yellow-500">أعيد قراءة القصيدة ❤️</button>
+        <button onclick="resetToStage1()" class="w-full sm:w-auto px-6 py-3.5 bg-rose-950 text-yellow-400 font-bold text-base md:text-lg rounded-full shadow-lg transition-all duration-300 border border-yellow-500/50">ارجعي للبداية 🌸</button>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    let yesScale = 1;
+    let opening = false;
+    let particleCanvas, particleCtx, particles = [], effects = [];
+    let animationFrame = null;
+
+    window.addEventListener('load', () => {
+      initCanvasParticles();
+      setupRunawayNoBtn();
+    });
+
+    function switchStage(fromId, toId, callback) {
+      const fromEl = document.getElementById(fromId);
+      const toEl = document.getElementById(toId);
+      if (!fromEl || !toEl) return;
+      fromEl.style.opacity = '0';
+      fromEl.style.transform = 'scale(.95)';
+      setTimeout(() => {
+        fromEl.classList.add('hidden');
+        toEl.classList.remove('hidden');
+        toEl.style.opacity = '0';
+        toEl.style.transform = 'scale(.95)';
+        requestAnimationFrame(() => {
+          toEl.style.opacity = '1';
+          toEl.style.transform = 'scale(1)';
+          if (callback) callback();
+        });
+      }, 500);
+    }
+
+    function goToStage2() {
+      triggerHeartBurst();
+      switchStage('stage1', 'stage2');
+    }
+
+    function setupRunawayNoBtn() {
+      const noBtn = document.getElementById('noBtn');
+      const yesBtn = document.getElementById('yesBtn');
+      const area = document.getElementById('buttonArea');
+      if (!noBtn || !yesBtn || !area) return;
+
+      function moveBtn(event) {
+        if (event) event.preventDefault();
+        const areaRect = area.getBoundingClientRect();
+        const btnW = noBtn.offsetWidth, btnH = noBtn.offsetHeight;
+        const pad = 8;
+        const maxX = Math.max(0, areaRect.width - btnW - pad * 2);
+        const maxY = Math.max(0, areaRect.height - btnH - pad * 2);
+        const x = pad + Math.random() * maxX;
+        const y = pad + Math.random() * maxY;
+        noBtn.style.position = 'absolute';
+        noBtn.style.left = '50%';
+        noBtn.style.top = '50%';
+        noBtn.style.margin = '0';
+        noBtn.style.transform = `translate(calc(-50% + ${x - maxX/2}px), calc(-50% + ${y - maxY/2}px))`;
+        yesScale = Math.min(1.75, yesScale + .08);
+        yesBtn.style.transform = `scale(${yesScale})`;
+      }
+      noBtn.addEventListener('mouseenter', moveBtn);
+      noBtn.addEventListener('touchstart', moveBtn, {passive:false});
+      noBtn.addEventListener('click', moveBtn);
+    }
+
+    function openSurprise() {
+      if (opening) return;
+      opening = true;
+      document.getElementById('envelope').classList.add('envelope-open');
+      document.getElementById('openEnvelopeBtn').disabled = true;
+      triggerGoldConfetti();
+      setTimeout(() => {
+        switchStage('stage2', 'stage3', () => {
+          animatePoemStrophes();
+          opening = false;
+        });
+      }, 1000);
+    }
+
+    function animatePoemStrophes() {
+      const strophes = document.querySelectorAll('.poem-strophe');
+      const container = document.getElementById('poemContainer');
+      container.scrollTop = 0;
+      strophes.forEach((item, index) => {
+        item.classList.remove('visible');
+        setTimeout(() => item.classList.add('visible'), index * 600);
+      });
+    }
+
+    function restartPoemAnimation() { animatePoemStrophes(); }
+
+    function resetToStage1() {
+      yesScale = 1;
+      const yesBtn = document.getElementById('yesBtn');
+      yesBtn.style.transform = 'scale(1)';
+      const noBtn = document.getElementById('noBtn');
+      noBtn.style.position = '';
+      noBtn.style.left = '';
+      noBtn.style.top = '';
+      noBtn.style.margin = '';
+      noBtn.style.transform = '';
+      document.getElementById('envelope').classList.remove('envelope-open');
+      document.getElementById('openEnvelopeBtn').disabled = false;
+      document.querySelectorAll('.poem-strophe').forEach(item => item.classList.remove('visible'));
+      switchStage('stage3', 'stage1');
+    }
+
+    function resizeCanvas() {
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      particleCanvas.width = Math.floor(window.innerWidth * dpr);
+      particleCanvas.height = Math.floor(window.innerHeight * dpr);
+      particleCanvas.style.width = window.innerWidth + 'px';
+      particleCanvas.style.height = window.innerHeight + 'px';
+      particleCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+
+    function initCanvasParticles() {
+      particleCanvas = document.getElementById('bgCanvas');
+      particleCtx = particleCanvas.getContext('2d');
+      resizeCanvas();
+      particles = Array.from({length: 48}, () => ({
+        x: Math.random() * window.innerWidth,
+        y: Math.random() * window.innerHeight,
+        r: Math.random() * 2 + .6,
+        speed: Math.random() * .45 + .15,
+        drift: (Math.random() - .5) * .35,
+        alpha: Math.random() * .55 + .2
+      }));
+      window.addEventListener('resize', resizeCanvas);
+      if (!animationFrame) animateCanvas();
+    }
+
+    function animateCanvas() {
+      const w = window.innerWidth, h = window.innerHeight;
+      particleCtx.clearRect(0, 0, w, h);
+      particles.forEach(p => {
+        p.y -= p.speed;
+        p.x += p.drift;
+        if (p.y < -10) { p.y = h + 10; p.x = Math.random() * w; }
+        if (p.x < -10) p.x = w + 10;
+        if (p.x > w + 10) p.x = -10;
+        particleCtx.beginPath();
+        particleCtx.fillStyle = `rgba(212,175,55,${p.alpha})`;
+        particleCtx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        particleCtx.fill();
+      });
+      effects = effects.filter(e => e.life > 0);
+      effects.forEach(e => {
+        e.x += e.vx; e.y += e.vy; e.vy += e.gravity; e.life--;
+        particleCtx.globalAlpha = Math.max(0, e.life / e.maxLife);
+        particleCtx.font = `${e.size}px sans-serif`;
+        particleCtx.fillText(e.symbol, e.x, e.y);
+      });
+      particleCtx.globalAlpha = 1;
+      animationFrame = requestAnimationFrame(animateCanvas);
+    }
+
+    function burst(symbol, count, originX, originY) {
+      const x = originX ?? window.innerWidth / 2;
+      const y = originY ?? window.innerHeight / 2;
+      for (let i = 0; i < count; i++) {
+        const angle = Math.random() * Math.PI * 2;
+        const speed = Math.random() * 3 + 1;
+        effects.push({
+          x, y, vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed - 1.5,
+          gravity: .035, life: 75 + Math.random() * 35, maxLife: 110,
+          size: 14 + Math.random() * 16, symbol
+        });
+      }
+    }
+    function triggerHeartBurst() { burst('💖', 28, window.innerWidth/2, window.innerHeight/2); }
+    function triggerGoldConfetti() {
+      const symbols = ['✨','💛','🌟','🌹','❤️'];
+      for (let i = 0; i < 65; i++) {
+        const x = Math.random() * window.innerWidth;
+        effects.push({x, y: -20 - Math.random()*window.innerHeight*.3, vx:(Math.random()-.5)*2.5, vy:Math.random()*2+1, gravity:.025, life:130+Math.random()*60, maxLife:190, size:13+Math.random()*15, symbol:symbols[Math.floor(Math.random()*symbols.length)]});
+      }
+    }
+  </script>
+</body>
+</html>
